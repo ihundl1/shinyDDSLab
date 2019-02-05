@@ -18,24 +18,10 @@ nameTable <- left_join(roster, sections, by = c('section' = 'sectionId')) %>%
   mutate(sectionName = paste("Section", substr(section, 7, 7))) %>% 
   mutate(fullname = paste0(lastname, ", ", firstname)) %>% select(pawsId, fullname, sectionName) %>%
   arrange(sectionName, fullname)
-splitStudents <- split(nameTable, nameTable$sectionName)
 
-sec1 <- setNames(splitStudents$`Section 1`$pawsId, splitStudents$`Section 1`$fullname) %>% as.list()
-sec1["Select a Student"] <- "NA"
-sec2 <- setNames(splitStudents$`Section 2`$pawsId, splitStudents$`Section 2`$fullname) %>% as.list()
-sec2["Select a Student"] <- "NA"
-sec3 <- setNames(splitStudents$`Section 3`$pawsId, splitStudents$`Section 3`$fullname) %>% as.list()
-sec3["Select a Student"] <- "NA"
-sec4 <- setNames(splitStudents$`Section 4`$pawsId, splitStudents$`Section 4`$fullname) %>% as.list()
-sec4["Select a Student"] <- "NA"
-sec5 <- setNames(splitStudents$`Section 5`$pawsId, splitStudents$`Section 5`$fullname) %>% as.list()
-sec5["Select a Student"] <- "NA"
-sec6 <- setNames(splitStudents$`Section 6`$pawsId, splitStudents$`Section 6`$fullname) %>% as.list()
-sec6["Select a Student"] <- "NA"
-sec8 <- setNames(splitStudents$`Section 8`$pawsId, splitStudents$`Section 8`$fullname) %>% as.list()
-sec8["Select a Student"] <- "NA"
+studentSelect <- setNames(nameTable$pawsId, nameTable$fullname)
 
-# Attandance
+# Attendance
 course <- classes %>% collect() %>% mutate(sectionId = substr(eventId, 1, 7)) %>%
   group_by(sectionId, eventTopic) %>% summarise(classTotal = n())
 
@@ -61,3 +47,4 @@ assignments <- chunk %>% collect()
 levels <- distinct(assignments, subTopic)
 levels <- as.vector(levels$subTopic)
 assignments$st2 <- factor(assignments$subTopic, levels = levels)
+
