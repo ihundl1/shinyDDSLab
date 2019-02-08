@@ -4,6 +4,9 @@ library(RColorBrewer)
 
 source('backend.R')
 
+sectionSelect <- setNames(sectionVector, sectionVector)
+studentSelect <- setNames(nameTable$pawsId, nameTable$fullname)
+
 ui <- dashboardPage(
   # App Title
   dashboardHeader(title = "Shiny Dashboard"),
@@ -17,7 +20,8 @@ ui <- dashboardPage(
   dashboardBody(
     # create a row
     fluidRow(
-      box(selectInput("student", "Select a Student", c(" " = "", studentSelect)), width = 6),
+      box(selectInput("section", "Select a Section", c(" " = "", sectionSelect)), width = 3),
+      box(selectInput("student", "Select a Student", c(" " = "", studentSelect)), width = 3),
       valueBox(12, "Attendace", icon = icon("chalkboard-teacher"), width = 6)
     ),
     fluidRow(
@@ -29,7 +33,17 @@ ui <- dashboardPage(
   )
 )
 
-server <- function(input, output) {
+server <- function(session, input, output) {
+  # limit student selection
+  limitStudents <- reactive({
+    lessStudents <- filter(nameTable, sectionName == input$section) %>% select(-sectionName)
+    newSelect <- setNames(lessStudents$pawsId, lessStudents$fullname)
+    return(c(" " = "", newSelect))
+  })
+  
+  observeEvent(input$section,
+    updateSelectInput(session, "student", "Select a Student", c(" " = "", limitStudents())))
+  
   # Update data
   studentSubs <- reactive(filter(subs, pawsId == input$student) %>% select(label, submissions, bestScore))
   

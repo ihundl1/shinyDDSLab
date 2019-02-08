@@ -19,7 +19,8 @@ nameTable <- left_join(roster, sections, by = c('section' = 'sectionId')) %>%
   mutate(fullname = paste0(lastname, ", ", firstname)) %>% select(pawsId, fullname, sectionName) %>%
   arrange(sectionName, fullname)
 
-studentSelect <- setNames(nameTable$pawsId, nameTable$fullname)
+sectionVector <- as.list(distinct(nameTable, sectionName))
+sectionVector <- sectionVector$sectionName
 
 # Attendance
 course <- classes %>% collect() %>% mutate(sectionId = substr(eventId, 1, 7)) %>%

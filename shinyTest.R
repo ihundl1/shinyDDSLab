@@ -4,6 +4,8 @@ library(RColorBrewer)
 
 source('backend.R')
 
+studentSelect <- setNames(nameTable$pawsId, nameTable$fullname)
+
 ui <- dashboardPage(
   # App Title
   dashboardHeader(title = "Shiny Dashboard"),
