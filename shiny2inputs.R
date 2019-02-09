@@ -22,7 +22,7 @@ ui <- dashboardPage(
     fluidRow(
       box(selectInput("section", "Select a Section", c(" " = "", sectionSelect)), width = 3),
       box(selectInput("student", "Select a Student", c(" " = "", studentSelect)), width = 3),
-      valueBox(12, "Attendace", icon = icon("chalkboard-teacher"), width = 6)
+      valueBoxOutput("attendance", width = 6)
     ),
     fluidRow(
       box(plotOutput("submissions", height = 200), width = 12)

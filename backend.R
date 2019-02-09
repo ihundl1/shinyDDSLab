@@ -24,18 +24,18 @@ sectionVector <- sectionVector$sectionName
 
 # Attendance
 course <- classes %>% collect() %>% mutate(sectionId = substr(eventId, 1, 7)) %>%
-  group_by(sectionId, eventTopic) %>% summarise(classTotal = n())
+  group_by(sectionId) %>% summarise(classTotal = n())
 
-attend <- attendance %>% left_join(classes, by = c('att_event' = 'eventId')) %>% collect() %>%
-  group_by(pawsId, eventTopic) %>% summarise(att = n())
+# Double check the attendance table
+# section & att_event duplicated, half empty
+attend <- attendance %>% filter(att_event == "") %>%
+  left_join(classes, by = c('section' = 'eventId')) %>% collect() %>%
+  group_by(pawsId) %>% summarise(att = n())
 
 big <- sections %>% filter(delivery == "inclass") %>% select(sectionId, instructor) %>% 
   left_join(roster, by = c('sectionId' = 'section')) %>% collect() %>% 
-  left_join(attend, by = 'pawsId') %>% left_join(course, by = c('sectionId', 'eventTopic')) %>%
+  left_join(attend, by = 'pawsId') %>% left_join(course, by = 'sectionId') %>%
   mutate(attPerc = att / classTotal) %>% mutate(missed = classTotal - att)
-
-lecTotal <- big %>% filter(eventTopic == "lecture")
-pracTotal <- big %>% filter(eventTopic == "practice")
 
 # Submissions
 subs <- submission %>% filter(pawsId != "") %>% left_join(chunk, by = c('label' = 'chunkId')) %>% 
