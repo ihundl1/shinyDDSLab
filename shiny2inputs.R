@@ -44,8 +44,27 @@ server <- function(session, input, output) {
   observeEvent(input$section,
     updateSelectInput(session, "student", "Select a Student", c(" " = "", limitStudents())))
   
-  # Update data
+  # Pull Attendance info
+  attValue <- reactive(ifelse(input$student %in% big$pawsId, 
+                              filter(big, pawsId == input$student) %>% select(missed) %>% as.integer(),
+                              "All"))
+  attPerc <- reactive(filter(big, pawsId == input$student) %>% select(attPerc) %>% as.double())
+  attWarning <- reactive(ifelse(
+    input$student %in% big$pawsId, ifelse(
+      attPerc() >= .75, "blue", ifelse(
+        attPerc() >= .5, "orange", "red"
+      )
+    ),
+    "red"
+  ))
+  
+  # Update data table for charts
   studentSubs <- reactive(filter(subs, pawsId == input$student) %>% select(label, submissions, bestScore))
+  
+  # generate value box
+  output$attendance <- renderValueBox({
+    valueBox(attValue(), "Classes Missed")
+  })
   
   # generate plots
   output$submissions <- renderPlot({
