@@ -20,9 +20,9 @@ ui <- dashboardPage(
   dashboardBody(
     # create a row
     fluidRow(
-      box(selectInput("section", "Select a Section", c(" " = "", sectionSelect)), width = 3),
-      box(selectInput("student", "Select a Student", c(" " = "", studentSelect)), width = 3),
-      valueBoxOutput("attendance", width = 6)
+      box(selectInput("section", "Select a Section", c(" " = "", sectionSelect)), width = 5),
+      box(selectInput("student", "Select a Student", c(" " = "", studentSelect)), width = 5),
+      valueBoxOutput("attendance", width = 2)
     ),
     fluidRow(
       box(plotOutput("submissions", height = 200), width = 12)
@@ -63,7 +63,7 @@ server <- function(session, input, output) {
   
   # generate value box
   output$attendance <- renderValueBox({
-    valueBox(attValue(), "Classes Missed")
+    valueBox(attValue(), "Classes Missed", color = attWarning())
   })
   
   # generate plots

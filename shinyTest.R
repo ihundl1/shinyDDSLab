@@ -19,8 +19,8 @@ ui <- dashboardPage(
   dashboardBody(
     # create a row
     fluidRow(
-      box(selectInput("student", "Select a Student", c(" " = "", studentSelect)), width = 6),
-      valueBox(12, "Attendace", icon = icon("chalkboard-teacher"), width = 6)
+      box(selectInput("student", "Select a Student", c(" " = "", studentSelect)), width = 8),
+      valueBoxOutput("attendance", width = 4)
     ),
     fluidRow(
       box(plotOutput("submissions", height = 200), width = 12)
@@ -34,6 +34,25 @@ ui <- dashboardPage(
 server <- function(input, output) {
   # Update data
   studentSubs <- reactive(filter(subs, pawsId == input$student) %>% select(label, submissions, bestScore))
+  
+  # Pull Attendance Info
+  attValue <- reactive(ifelse(input$student %in% big$pawsId, 
+                              filter(big, pawsId == input$student) %>% select(missed) %>% as.integer(),
+                              "All"))
+  attPerc <- reactive(filter(big, pawsId == input$student) %>% select(attPerc) %>% as.double())
+  attWarning <- reactive(ifelse(
+    input$student %in% big$pawsId, ifelse(
+      attPerc() >= .75, "blue", ifelse(
+        attPerc() >= .5, "orange", "red"
+      )
+    ),
+    "red"
+  ))
+  
+  # generate value box
+  output$attendance <- renderValueBox({
+    valueBox(attValue(), "Classes Missed", color = attWarning())
+  })
   
   # generate plots
   output$submissions <- renderPlot({
