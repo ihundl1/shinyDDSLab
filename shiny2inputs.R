@@ -1,6 +1,7 @@
 library(shiny)
 library(shinydashboard)
 library(RColorBrewer)
+library(scales)
 
 source('betterBackend.R')
 
@@ -20,9 +21,9 @@ ui <- dashboardPage(
   dashboardBody(
     # create a row
     fluidRow(
-      box(selectInput("section", "Select a Section", c(" " = "", sectionSelect)), width = 5),
-      box(selectInput("student", "Select a Student", c(" " = "", studentSelect)), width = 5),
-      valueBoxOutput("attendance", width = 2)
+      box(selectInput("section", "Select a Section", c(" " = "", sectionSelect)), width = 4),
+      box(selectInput("student", "Select a Student", c(" " = "", studentSelect)), width = 4),
+      valueBoxOutput("attendance", width = 4)
     ),
     fluidRow(
       box(plotOutput("submissions", height = 200), width = 12)
@@ -48,7 +49,9 @@ server <- function(session, input, output) {
   attValue <- reactive(ifelse(input$student %in% big$pawsId, 
                               filter(big, pawsId == input$student) %>% select(missed) %>% as.integer(),
                               "All"))
-  attPerc <- reactive(filter(big, pawsId == input$student) %>% select(attPerc) %>% as.double())
+  attPerc <- reactive(ifelse(input$student %in% big$pawsId,
+                            filter(big, pawsId == input$student) %>% select(attPerc) %>% as.double(),
+                            0))
   attWarning <- reactive(ifelse(
     input$student %in% big$pawsId, ifelse(
       attPerc() >= .75, "blue", ifelse(
@@ -57,13 +60,16 @@ server <- function(session, input, output) {
     ),
     "red"
   ))
+  attTotal <- reactive(ifelse(input$student %in% big$pawsId,
+                       filter(big, pawsId == input$student) %>% select(classTotal) %>% as.character(),
+                       "0"))
   
   # Update data table for charts
   studentSubs <- reactive(filter(subs, pawsId == input$student) %>% select(label, submissions, bestScore))
   
   # generate value box
   output$attendance <- renderValueBox({
-    valueBox(attValue(), "Classes Missed", color = attWarning())
+    valueBox(percent(attPerc(), accuracy=1), paste0("of ", attTotal(), " classes attended"), color = attWarning())
   })
   
   # generate plots

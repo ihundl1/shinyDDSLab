@@ -18,3 +18,6 @@ sectionVector <- sectionVector$sectionName
 levels <- distinct(assignments, subTopic)
 levels <- as.vector(levels$subTopic)
 assignments$st2 <- factor(assignments$subTopic, levels = levels)
+
+## Attendance (NA -> 0)
+big[is.na(big)] <- 0
