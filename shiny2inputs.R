@@ -23,13 +23,13 @@ ui <- dashboardPage(
     fluidRow(
       box(selectInput("section", "Select a Section", c(" " = "", sectionSelect)), width = 4),
       box(selectInput("student", "Select a Student", c(" " = "", studentSelect)), width = 4),
-      valueBoxOutput("attendance", width = 4)
+      valueBoxOutput("attValue", width = 4)
     ),
     fluidRow(
       box(plotOutput("submissions", height = 200), width = 12)
     ),
     fluidRow(
-      box(plotOutput("noSubs", height = 200), width = 12)
+      box(plotOutput("attChart", height = 150), width = 12)
     )
   )
 )
@@ -45,10 +45,7 @@ server <- function(session, input, output) {
   observeEvent(input$section,
     updateSelectInput(session, "student", "Select a Student", c(" " = "", limitStudents())))
   
-  # Pull Attendance info
-  attValue <- reactive(ifelse(input$student %in% big$pawsId, 
-                              filter(big, pawsId == input$student) %>% select(missed) %>% as.integer(),
-                              "All"))
+  # Pull Attendance Value Box info
   attPerc <- reactive(ifelse(input$student %in% big$pawsId,
                             filter(big, pawsId == input$student) %>% select(attPerc) %>% as.double(),
                             0))
@@ -64,27 +61,27 @@ server <- function(session, input, output) {
                        filter(big, pawsId == input$student) %>% select(classTotal) %>% as.character(),
                        "0"))
   
-  # Update data table for charts
+  # Update & Generate Submissions Tables
   studentSubs <- reactive(filter(subs, pawsId == input$student) %>% select(label, submissions, bestScore))
+  emptyAssignments <- reactive(filter(assignments, !(label %in% studentSubs()$label)) %>%
+                                 mutate(submissions = 0, bestScore = as.integer(0)) %>%
+                                 select(label, submissions, bestScore))
+  fullSubs <- reactive(rbind(studentSubs(), emptyAssignments()))
+  
+  # Generate attendance date table
+  studentAttendance <- reactive(filter(attendance, pawsId == input$student))
   
   # generate value box
-  output$attendance <- renderValueBox({
+  output$attValue <- renderValueBox({
     valueBox(percent(attPerc(), accuracy=1), paste0("of ", attTotal(), " classes attended"), color = attWarning())
   })
   
   # generate plots
   output$submissions <- renderPlot({
-    ggplot(studentSubs(), aes(x = label, y = bestScore)) +
+    ggplot(fullSubs(), aes(x = label, y = bestScore)) +
       geom_col(fill = "#FF9999") + 
       geom_text(aes(label = submissions), position = position_stack(vjust = .5), size = 10) + 
       theme_minimal() + ylab("Best Score") + xlab("Chunk") +
-      theme(panel.grid.major.x = element_blank())
-  })
-  output$noSubs <- renderPlot({
-    filter(assignments, !(chunkId %in% studentSubs()$label)) %>% arrange(chunkId) %>%
-      ggplot(aes(x = st2, fill = mainTopic)) + geom_bar() + xlab("Topic") + 
-      ylab("Assignments Left") + theme_minimal() + 
-      scale_fill_manual(values = brewer.pal(3, "Accent")) + 
       theme(panel.grid.major.x = element_blank())
   })
 }
