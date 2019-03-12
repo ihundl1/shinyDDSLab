@@ -7,9 +7,9 @@ nameTable <- tbl(conDatasource, 'vwRoster') %>% select(pawsId, fullname, section
 big <- tbl(conDatasource, 'vwBig') %>% collect()
 subs <- tbl(conDatasource, 'vwSubs') %>% collect()
 assignments <- tbl(conDatasource,'exchunk') %>% filter(mainTopic == 'excel') %>% collect()
-attendance <- tbl(conDatasource, 'vwStudentDate') %>% collect()
+attendance <- tbl(conDatasource, 'vwStudentDate') %>% filter(!is.na(eventDate)) %>% collect()
 dates <- tbl(conDatasource, 'attevent') %>% select(eventId, eventDate) %>% collect() %>%
-  mutate(section = substr(eventId, 1, 7))
+  mutate(section = paste0("Section ", substr(eventId, 7, 7)))
 
 # Inputs
 ## Students by Section

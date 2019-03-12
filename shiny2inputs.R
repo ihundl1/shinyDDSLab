@@ -68,8 +68,10 @@ server <- function(session, input, output) {
                                  select(label, submissions, bestScore))
   fullSubs <- reactive(rbind(studentSubs(), emptyAssignments()))
   
-  # Generate attendance date table
+  # Generate attendance table for chart
   studentAttendance <- reactive(filter(attendance, pawsId == input$student))
+  dateValues <- reactive(filter(dates, section == input$section) %>% 
+                           mutate(attended = ifelse(eventDate %in% studentAttendance()$eventDate, 1, 0)))
   
   # generate value box
   output$attValue <- renderValueBox({
@@ -79,11 +81,17 @@ server <- function(session, input, output) {
   # generate plots
   output$submissions <- renderPlot({
     ggplot(fullSubs(), aes(x = label, y = bestScore)) +
-      geom_col(fill = "#FF9999") + 
+      geom_col(fill = "#AED6F1") + 
       geom_text(aes(label = submissions), position = position_stack(vjust = .5), size = 10) + 
       theme_minimal() + ylab("Best Score") + xlab("Chunk") +
+      theme(panel.grid.major.x = element_blank())
+  })
+  output$attChart <- renderPlot({
+    ggplot(dateValues(), aes(x = eventDate, y = attended)) + 
+      geom_col() + theme_minimal() + ylab("Attended") + xlab("Class Date") +
       theme(panel.grid.major.x = element_blank())
   })
 }
 
 shinyApp(ui = ui, server = server)
+
