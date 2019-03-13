@@ -10,7 +10,7 @@ studentSelect <- setNames(nameTable$pawsId, nameTable$fullname)
 
 ui <- dashboardPage(
   # App Title
-  dashboardHeader(title = "Shiny Dashboard"),
+  dashboardHeader(title = "ISDS 1102 Instructor Dashboard"),
 
   # Sidebar for Inputs
   dashboardSidebar(
@@ -78,7 +78,8 @@ server <- function(session, input, output) {
   
   # generate value box
   output$attValue <- renderValueBox({
-    valueBox(percent(attPerc(), accuracy=1), paste0("of ", attTotal(), " classes attended"), color = attWarning())
+    valueBox(percent(attPerc(), accuracy=1), paste0("of ", attTotal(), " classes attended"), 
+             color = attWarning())
   })
   
   # generate plots
