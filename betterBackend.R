@@ -5,7 +5,7 @@ source('connection.R')
 #import data
 nameTable <- tbl(conDatasource, 'vwRoster') %>% select(pawsId, fullname, sectionName) %>% collect()
 big <- tbl(conDatasource, 'vwBig') %>% collect()
-subs <- tbl(conDatasource, 'vwSubs') %>% collect()
+subs <- tbl(conDatasource, 'vwSubs') %>% collect() %>% mutate(eNum = substr(label, 2, 2))
 assignments <- tbl(conDatasource,'exchunk') %>% filter(mainTopic == 'excel') %>% collect()
 attendance <- tbl(conDatasource, 'vwStudentDate') %>% filter(!is.na(eventDate)) %>% collect()
 dates <- tbl(conDatasource, 'attevent') %>% select(eventId, eventDate) %>% collect() %>%

@@ -62,11 +62,14 @@ server <- function(session, input, output) {
                        "0"))
   
   # Update & Generate Submissions Tables
-  studentSubs <- reactive(filter(subs, pawsId == input$student) %>% select(label, submissions, bestScore))
+  studentSubs <- reactive(filter(subs, pawsId == input$student) %>% 
+                            select(label, submissions, bestScore, eNum))
   emptyAssignments <- reactive(filter(assignments, !(label %in% studentSubs()$label)) %>%
                                  mutate(submissions = 0, bestScore = as.integer(0)) %>%
-                                 select(label, submissions, bestScore))
-  fullSubs <- reactive(rbind(studentSubs(), emptyAssignments()))
+                                 mutate(eNum = substr(label, 2, 2)) %>%
+                                 select(label, submissions, bestScore, eNum))
+  fullSubs <- reactive(rbind(studentSubs(), emptyAssignments()) %>% 
+    filter(eNum <= max(studentSubs()$eNum)))
   
   # Generate attendance table for chart
   studentAttendance <- reactive(filter(attendance, pawsId == input$student))
@@ -82,13 +85,15 @@ server <- function(session, input, output) {
   output$submissions <- renderPlot({
     ggplot(fullSubs(), aes(x = label, y = bestScore)) +
       geom_col(fill = "#AED6F1") + 
-      geom_text(aes(label = submissions), position = position_stack(vjust = .5), size = 10) + 
+      geom_text(data = filter(fullSubs(), submissions > 0),
+                aes(label = submissions), position = position_stack(vjust = .5), size = 10) + 
       theme_minimal() + ylab("Best Score") + xlab("Chunk") +
       theme(panel.grid.major.x = element_blank())
   })
   output$attChart <- renderPlot({
     ggplot(dateValues(), aes(x = eventDate, y = attended)) + 
-      geom_col() + theme_minimal() + ylab("Attended") + xlab("Class Date") +
+      geom_col(fill = attWarning()) + theme_minimal() + 
+      ylab("Attended") + xlab("Class Date") +
       theme(panel.grid.major.x = element_blank())
   })
 }
