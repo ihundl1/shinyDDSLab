@@ -29,7 +29,7 @@ ui <- dashboardPage(
       box(plotOutput("submissions", height = 200), width = 12)
     ),
     fluidRow(
-      box(plotOutput("attChart", height = 150), width = 12)
+      box(plotOutput("attChart", height = 175), width = 12)
     )
   )
 )

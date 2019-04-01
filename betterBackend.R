@@ -13,6 +13,11 @@ dates <- tbl(conDatasource, 'attevent') %>% select(eventId, eventDate) %>%
   collect() %>% filter(eventDate < Sys.Date()) %>%
   mutate(section = paste0("Section ", substr(eventId, 7, 7)))
 
+# limit selection to Spring 2019
+nameTable <- nameTable %>% filter(substr(section, 1, 6) == "2019SP")
+dates <- dates %>% filter(substr(eventId, 1, 6) == "2019SP")
+big <- big %>% filter(substr(section, 1, 6) == "2019SP")
+
 # Inputs
 ## Students by Semester
 semesterVector <- as.list(distinct(nameTable, substr(section, 1, 6)))
