@@ -63,7 +63,7 @@ server <- function(session, input, output) {
   
   # Update & Generate Submissions Tables
   studentSubs <- reactive(filter(subs, pawsId == input$student) %>% 
-                            select(label, submissions, bestScore, eNum))
+                            select(label, submissions, bestScore, eNum)) %>% mutate(type = "student")
   emptyAssignments <- reactive(filter(assignments, !(label %in% studentSubs()$label)) %>%
                                  mutate(submissions = 0, bestScore = as.integer(0)) %>%
                                  mutate(eNum = substr(label, 2, 2)) %>%

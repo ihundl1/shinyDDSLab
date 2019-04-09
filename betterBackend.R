@@ -12,11 +12,14 @@ attendance <- tbl(conDatasource, 'vwStudentDate') %>% filter(!is.na(eventDate)) 
 dates <- tbl(conDatasource, 'attevent') %>% select(eventId, eventDate) %>% 
   collect() %>% filter(eventDate < Sys.Date()) %>%
   mutate(section = paste0("Section ", substr(eventId, 7, 7)))
+avgBestScore <- tbl(conDatasource, 'vwAvgBestScore') %>% collect()
 
 # limit selection to Spring 2019
 nameTable <- nameTable %>% filter(substr(section, 1, 6) == "2019SP")
 dates <- dates %>% filter(substr(eventId, 1, 6) == "2019SP")
 big <- big %>% filter(substr(section, 1, 6) == "2019SP")
+avgBestScore <- avgBestScore %>% filter(substr(section, 1, 6) == "2019SP")
+subs <- subs %>% filter(mainTopic == "excel")
 
 # Inputs
 ## Students by Semester
@@ -29,6 +32,16 @@ sectionVector <- sectionVector$sectionName
 # Outputs
 ## Submissions
 colnames(assignments)[1] <- 'label'
+
+fullSubs <- subs %>% left_join(nameTable, by= "pawsId")
+secSubs <- fullSubs %>% group_by(section, label) %>% summarise(classSubs = sum(submissions))
+enrollment <- nameTable %>% group_by(section) %>% summarise(enrolled = n())
+avgSubs <- left_join(secSubs, enrollment, by="section") %>% mutate(classAvgSubs = classSubs/enrolled) %>%
+  filter(!is.na(section))
+classAvg <- left_join(avgSubs, avgBestScore, by=c("section", "label")) %>% 
+  select(section, label, classAvgSubs, classAvgBestScore) %>% mutate(eNum = substr(label, 2, 2)) %>%
+  select(label, classAvgSubs, classAvgBestScore, eNum, section)
+
 ## Attendance (NA -> 0)
 big[is.na(big)] <- 0
 
