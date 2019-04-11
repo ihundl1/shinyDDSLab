@@ -63,19 +63,28 @@ server <- function(session, input, output) {
   
   # Update & Generate Submissions Tables
   studentSubs <- reactive(filter(subs, pawsId == input$student) %>% 
-                            select(label, submissions, bestScore, eNum)) %>% mutate(type = "student")
+                            select(label, submissions, bestScore, eNum) %>% mutate(type = "student"))
   emptyAssignments <- reactive(filter(assignments, !(label %in% studentSubs()$label)) %>%
                                  mutate(submissions = 0, bestScore = as.integer(0)) %>%
-                                 mutate(eNum = substr(label, 2, 2)) %>%
-                                 select(label, submissions, bestScore, eNum))
-  fullSubs <- reactive(rbind(studentSubs(), emptyAssignments()) %>% 
+                                 mutate(eNum = substr(label, 2, 2)) %>% mutate(type = "student") %>%
+                                 select(label, submissions, bestScore, eNum, type))
+  sectionAverages <- reactive(filter(classAvg, type == as.character(
+    filter(nameTable, pawsId == input$student) %>% select(section)
+  )))
+  fullSubs <- reactive(rbind(studentSubs(), emptyAssignments(), sectionAverages()) %>% 
     filter(eNum <= max(studentSubs()$eNum)))
   
   # Generate attendance table for chart
   studentAttendance <- reactive(filter(attendance, pawsId == input$student))
   dateValues <- reactive(filter(dates, section == input$section) %>% 
                            mutate(attended = ifelse(eventDate %in% studentAttendance()$eventDate, 1, 0)))
-  
+
+  # Colors!
+  colorPalette <- reactive(ifelse(attWarning() == 'red', "Reds", 
+                                  ifelse(attWarning() == 'orange', "Oranges", "Blues")))
+  colorPicker <- reactive(ifelse(attWarning() == 'red', "red3", 
+                                  ifelse(attWarning() == 'orange', "darkorange2", "royalblue3")))
+    
   # generate value box
   output$attValue <- renderValueBox({
     valueBox(percent(attPerc(), accuracy=1), paste0("of ", attTotal(), " classes attended"), 
@@ -84,16 +93,17 @@ server <- function(session, input, output) {
   
   # generate plots
   output$submissions <- renderPlot({
-    ggplot(fullSubs(), aes(x = label, y = bestScore)) +
-      geom_col(fill = "#AED6F1") + 
-      geom_text(data = filter(fullSubs(), submissions > 0),
-                aes(label = submissions), position = position_stack(vjust = .5), size = 10) + 
+    ggplot(fullSubs(), aes(x = label, y = bestScore, fill = type)) +
+      geom_col(position = "dodge") + 
+      geom_text(aes(y = bestScore/2, label = submissions), position = position_dodge(width = 0.9), 
+                size = 6) + 
       theme_minimal() + ylab("Best Score") + xlab("Chunk") +
-      theme(panel.grid.major.x = element_blank())
+      theme(panel.grid.major.x = element_blank()) +
+      scale_fill_brewer(palette = colorPalette())
   })
   output$attChart <- renderPlot({
     ggplot(dateValues(), aes(x = eventDate, y = attended)) + 
-      geom_col(fill = attWarning()) + theme_minimal() + 
+      geom_col(fill = colorPicker()) + theme_minimal() + 
       ylab("Attended") + xlab("Class Date") +
       theme(panel.grid.major.x = element_blank())
   })
