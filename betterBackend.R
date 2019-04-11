@@ -48,3 +48,9 @@ colnames(classAvg) <- c("label", "submissions", "bestScore", "eNum", "type")
 ## Attendance (NA -> 0)
 big[is.na(big)] <- 0
 
+# Dashboard Title
+sem <- distinct(nameTable, substr(section, 1, 6)) %>% as.character()
+semYear <- substr(sem, 1, 4)
+semSeason <- substr(sem, 5, 6)
+semSeason <- ifelse(semSeason == "SP", "Spring", "Fall")
+dashTitle <- paste("ISDS 1102 Instructor Dashboard", semSeason, semYear)

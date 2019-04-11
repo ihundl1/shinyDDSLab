@@ -11,7 +11,7 @@ exSelect <- setNames(exVector, exVector)
 
 ui <- dashboardPage(
   # App Title
-  dashboardHeader(title = "ISDS 1102 Instructor Dashboard"),
+  dashboardHeader(title = dashTitle, titleWidth = 450),
 
   # Sidebar for Inputs
   dashboardSidebar(
