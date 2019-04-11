@@ -7,7 +7,8 @@ nameTable <- tbl(conDatasource, 'vwRoster') %>%
   select(section, pawsId, fullname, sectionName) %>% collect()
 big <- tbl(conDatasource, 'vwBig') %>% collect()
 subs <- tbl(conDatasource, 'vwSubs') %>% collect() %>% mutate(eNum = substr(label, 2, 2))
-assignments <- tbl(conDatasource,'exchunk') %>% filter(mainTopic == 'excel') %>% collect()
+assignments <- tbl(conDatasource,'exchunk') %>% filter(mainTopic == 'excel') %>% collect() %>%
+  mutate(eNum = substr(chunkId, 2, 2))
 attendance <- tbl(conDatasource, 'vwStudentDate') %>% filter(!is.na(eventDate)) %>% collect()
 dates <- tbl(conDatasource, 'attevent') %>% select(eventId, eventDate) %>% 
   collect() %>% filter(eventDate < Sys.Date()) %>%
@@ -22,12 +23,12 @@ avgBestScore <- avgBestScore %>% filter(substr(section, 1, 6) == "2019SP")
 subs <- subs %>% filter(mainTopic == "excel")
 
 # Inputs
-## Students by Semester
-semesterVector <- as.list(distinct(nameTable, substr(section, 1, 6)))
-semesterVector <- semesterVector$`substr(section, 1, 6)`
 ## Students by Section
 sectionVector <- as.list(distinct(nameTable, sectionName))
 sectionVector <- sectionVector$sectionName
+## Exercise Selection
+exVector <- as.list(distinct(assignments, eNum))
+exVector <- exVector$eNum
 
 # Outputs
 ## Submissions

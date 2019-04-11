@@ -7,6 +7,7 @@ source('betterBackend.R')
 
 sectionSelect <- setNames(sectionVector, sectionVector)
 studentSelect <- setNames(nameTable$pawsId, nameTable$fullname)
+exSelect <- setNames(exVector, exVector)
 
 ui <- dashboardPage(
   # App Title
@@ -21,9 +22,10 @@ ui <- dashboardPage(
   dashboardBody(
     # create a row
     fluidRow(
-      box(selectInput("section", "Select a Section", c(" " = "", sectionSelect)), width = 4),
-      box(selectInput("student", "Select a Student", c(" " = "", studentSelect)), width = 4),
-      valueBoxOutput("attValue", width = 4)
+      box(selectInput("section", "Select a Section", c(" " = "", sectionSelect)), width = 3),
+      box(selectInput("student", "Select a Student", c(" " = "", studentSelect)), width = 3),
+      box(selectInput("ex", "Select an Exercise", c(" " = "", exSelect)), width = 3),
+      valueBoxOutput("attValue", width = 3)
     ),
     fluidRow(
       box(plotOutput("submissions", height = 200), width = 12)
@@ -62,17 +64,23 @@ server <- function(session, input, output) {
                        "0"))
   
   # Update & Generate Submissions Tables
+  ## Student submissions table
   studentSubs <- reactive(filter(subs, pawsId == input$student) %>% 
                             select(label, submissions, bestScore, eNum) %>% mutate(type = "student"))
+  ## Assignments that the student didn't submit
   emptyAssignments <- reactive(filter(assignments, !(label %in% studentSubs()$label)) %>%
-                                 mutate(submissions = 0, bestScore = as.integer(0)) %>%
-                                 mutate(eNum = substr(label, 2, 2)) %>% mutate(type = "student") %>%
+                                 mutate(submissions = 0, bestScore = as.integer(0)) %>% 
+                                 mutate(type = "student") %>%
                                  select(label, submissions, bestScore, eNum, type))
+  ## Filter class averages for specific section
   sectionAverages <- reactive(filter(classAvg, type == as.character(
     filter(nameTable, pawsId == input$student) %>% select(section)
   )))
+  ## Reactive function to determine x-axis limit of chart
+  maxEx <- reactive(ifelse(input$ex == "", max(studentSubs()$eNum), input$ex))
+  ## Bind student, missing, & section tables & filter by maxEx
   fullSubs <- reactive(rbind(studentSubs(), emptyAssignments(), sectionAverages()) %>% 
-    filter(eNum <= max(studentSubs()$eNum)))
+    filter(eNum <= maxEx()))
   
   # Generate attendance table for chart
   studentAttendance <- reactive(filter(attendance, pawsId == input$student))
