@@ -12,6 +12,7 @@
    - shinydashboard
    - RColorBrewer
    - scales
+   - lubridate
 7. You may also need to install MySQL Workbench and its dependencies to connect to the database locally for this dashboard to work.
 ## Using the Dashboard
 1. Change your working directory to the location of this repository on your computer.
