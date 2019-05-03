@@ -51,6 +51,7 @@ big[is.na(big)] <- 0
 ## Attendance by Class
 classAtt <- left_join(nameTable, attendance, by="pawsId") %>% group_by(section, sectionName, eventDate) %>%
   summarise(classAttendance = n()) %>% filter(year(eventDate) == substr(currentSemester, 1, 4))
+# if archiving data, comment out the last filter above ^^^
 
 # Dashboard Title
 sem <- distinct(nameTable, substr(section, 1, 6)) %>% as.character()
